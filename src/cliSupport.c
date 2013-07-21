@@ -43,8 +43,8 @@
 
 void max7456CLI()
 {
-    uint8_t  max7456query;
-    uint8_t  validQuery = false;
+    uint8_t  max7456query = 'x';
+    uint8_t  validQuery   = false;
 
     cliBusy = true;
 
@@ -303,7 +303,7 @@ void mixerCLI()
     uint8_t  index;
     uint8_t  rows, columns;
 
-    uint8_t  mixerQuery;
+    uint8_t  mixerQuery = 'x';
     uint8_t  validQuery = false;
 
     cliBusy = true;
@@ -705,8 +705,8 @@ void receiverCLI()
     char     rcOrderString[9];
     float    tempFloat;
     uint8_t  index;
-    uint8_t  receiverQuery;
-    uint8_t  validQuery = false;
+    uint8_t  receiverQuery = 'x';
+    uint8_t  validQuery    = false;
 
     cliBusy = true;
 
@@ -894,9 +894,8 @@ void receiverCLI()
 
 void sensorCLI()
 {
-    uint8_t  sensorQuery;
-    // HJI uint8_t  tempInt;
-    uint8_t  validQuery = false;
+    uint8_t  sensorQuery = 'x';
+    uint8_t  validQuery  = false;
 
     cliBusy = true;
 
@@ -1073,7 +1072,7 @@ void gpsCLI()
 {
 	USART_InitTypeDef USART_InitStructure;
 
-	uint8_t  gpsQuery;
+	uint8_t  gpsQuery   = 'x';
     uint8_t  validQuery = false;
 
     cliBusy = true;

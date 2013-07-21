@@ -1,3 +1,6 @@
+7/21/2013
+-Cleaned up warnings from cliSupport.c with -Os selected
+-Cleaned up warnings from utilties.s
 
 7/18/2013
 -Cleanup drv_pwmEsc.c to support 6 ESCs
