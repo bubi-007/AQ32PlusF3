@@ -16,8 +16,8 @@
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
@@ -41,6 +41,10 @@
 #define VCOMPORT_IN_FRAME_INTERVAL             5
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+extern __IO uint32_t packetSent;         // HJI
+// HJI extern __IO uint32_t packetReceive;
+extern __IO uint8_t  receiveBuffer[64];  // HJI
+__IO uint32_t receiveLength;             // HJI
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
@@ -54,7 +58,9 @@
 
 void EP1_IN_Callback (void)
 {
-    packetSent = 0;
+    // HJI packet_sent = 1;
+
+	packetSent = 0;  // HJI
 }
 
 /*******************************************************************************
@@ -64,11 +70,14 @@ void EP1_IN_Callback (void)
 * Output         : None.
 * Return         : None.
 *******************************************************************************/
-
 void EP3_OUT_Callback(void)
 {
-    receiveLength = GetEPRxCount(ENDP3);
-    PMAToUserBufferCopy((unsigned char*)receiveBuffer, ENDP3_RXADDR, receiveLength);
+   // HJI packet_receive = 1;
+    // HJI Receive_length = GetEPRxCount(ENDP3);
+    // HJI PMAToUserBufferCopy((unsigned char*)Receive_Buffer, ENDP3_RXADDR, Receive_length);
+
+	receiveLength = GetEPRxCount(ENDP3);                                              // HJI
+	PMAToUserBufferCopy((unsigned char*)receiveBuffer, ENDP3_RXADDR, receiveLength);  // HJI
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

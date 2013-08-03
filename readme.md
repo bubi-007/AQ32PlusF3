@@ -1,3 +1,6 @@
+8/02/2013
+-VCP Updates
+
 7/21/2013
 -Cleaned up warnings from cliSupport.c with -Os selected
 -Cleaned up warnings from utilties.s

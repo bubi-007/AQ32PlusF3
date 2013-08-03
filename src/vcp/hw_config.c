@@ -16,8 +16,8 @@
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
@@ -27,8 +27,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 
-#include "board.h"
-#include "stm32f30x_it.h"
+#include "stm32_it.h"
+#include "board.h"         // HJI
 #include "usb_lib.h"
 #include "usb_prop.h"
 #include "usb_desc.h"
@@ -39,22 +39,20 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-
 ErrorStatus HSEStartUpStatus;
-
 EXTI_InitTypeDef EXTI_InitStructure;
+__IO uint32_t packetSent;                                     // HJI
+// HJI extern __IO uint32_t packetSent;
+// HJI extern __IO uint8_t  sendBuffer[VIRTUAL_COM_PORT_DATA_SIZE];
+// HJI extern __IO uint32_t packetReceive;
+extern __IO uint32_t  receiveLength;                          // HJI
 
-__IO uint32_t packetSent = 0;
-
-uint32_t receiveLength;
-
-uint8_t  receiveBuffer[64];
-
-uint32_t sendLength;
-
+uint8_t  receiveBuffer[64];                                   // HJI
+uint32_t sendLength;                                          // HJI
 static void IntToUnicode (uint32_t value , uint8_t *pbuf , uint8_t len);
-
 /* Extern variables ----------------------------------------------------------*/
+
+// HJI extern LINE_CODING linecoding;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -66,50 +64,104 @@ static void IntToUnicode (uint32_t value , uint8_t *pbuf , uint8_t len);
 *******************************************************************************/
 void Set_System(void)
 {
-    GPIO_InitTypeDef GPIO_InitStructure;
+#if !defined(STM32L1XX_MD) && !defined(STM32L1XX_HD) && !defined(STM32L1XX_MD_PLUS)
+  GPIO_InitTypeDef GPIO_InitStructure;
+#endif /* STM32L1XX_MD && STM32L1XX_XD */  
 
-   /*!< At this stage the microcontroller clock setting is already configured,
-        this is done through SystemInit() function which is called from startup
-        file (startup_stm32f10x_xx.s) before to branch to application main.
-        To reconfigure the default setting of SystemInit() function, refer to
-        system_stm32f10x.c file
-    */
+#if defined(USB_USE_EXTERNAL_PULLUP)
+  GPIO_InitTypeDef  GPIO_InitStructure;
+#endif /* USB_USE_EXTERNAL_PULLUP */ 
+  
+  /*!< At this stage the microcontroller clock setting is already configured, 
+       this is done through SystemInit() function which is called from startup
+       file (startup_stm32f10x_xx.s) before to branch to application main.
+       To reconfigure the default setting of SystemInit() function, refer to
+       system_stm32f10x.c file
+     */   
+#if defined(STM32L1XX_MD) || defined(STM32L1XX_HD)|| defined(STM32L1XX_MD_PLUS) || defined(STM32F37X) || defined(STM32F30X)
+  /* Enable the SYSCFG module clock */
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+#endif /* STM32L1XX_XD */ 
+   
+// HJI #if !defined(STM32L1XX_MD) && !defined(STM32L1XX_HD) && !defined(STM32L1XX_MD_PLUS) && !defined(STM32F37X) && !defined(STM32F30X)
+// HJI   /* Enable USB_DISCONNECT GPIO clock */
+// HJI   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIO_DISCONNECT, ENABLE);
 
-    /* Enable the SYSCFG module clock */
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+// HJI   /* Configure USB pull-up pin */
+// HJI   GPIO_InitStructure.GPIO_Pin = USB_DISCONNECT_PIN;
+// HJI   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+// HJI   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
+// HJI   GPIO_Init(USB_DISCONNECT, &GPIO_InitStructure);
+// HJI #endif /* STM32L1XX_MD && STM32L1XX_XD */
+   
+#if defined(USB_USE_EXTERNAL_PULLUP)
+  /* Enable the USB disconnect GPIO clock */
+  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIO_DISCONNECT, ENABLE);
 
-    /*Pull down PA12 to create USB Disconnect Pulse*/
+  /* USB_DISCONNECT used as USB pull-up */
+  GPIO_InitStructure.GPIO_Pin = USB_DISCONNECT_PIN;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_Init(USB_DISCONNECT, &GPIO_InitStructure);  
+#endif /* USB_USE_EXTERNAL_PULLUP */ 
+  
+    /*Pull down PA12 to create USB Disconnect Pulse*/     // HJI
+#if defined(STM32F30X)                                    // HJI
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);   // HJI
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_12;          // HJI
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;     // HJI
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;        // HJI
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;        // HJI
+	GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;     // HJI
+#else
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE); // HJI
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_12;          // HJI
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;     // HJI
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_OD;     // HJI
+#endif
+
+    GPIO_Init(GPIOA, &GPIO_InitStructure);                // HJI
+
+    GPIO_ResetBits(GPIOA, GPIO_Pin_12);                   // HJI
+
+	delay(200);                                           // HJI
+
+	GPIO_SetBits(GPIOA, GPIO_Pin_12);                     // HJI
+
+#if defined(STM32F37X) || defined(STM32F30X)
+
+    /* Enable the USB disconnect GPIO clock */
+    // HJI RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIO_DISCONNECT, ENABLE);
+
+	/*Set PA11,12 as IN - USB_DM,DP*/
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
-
-    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_12;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11 | GPIO_Pin_12;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-	GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
-
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
-
-    GPIO_ResetBits(GPIOA, GPIO_Pin_12);
-
-	delay(200);
-
-	GPIO_SetBits(GPIOA, GPIO_Pin_12);
-
-    /*Set PA11,12 as IN - USB_DM,DP*/
-    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_11 | GPIO_Pin_12;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
-
+  
     /*SET PA11,12 for USB: USB_DM,DP*/
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource11, GPIO_AF_14);
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource12, GPIO_AF_14);
-
+  
+    // HJI /* USB_DISCONNECT used as USB pull-up */
+    // HJI GPIO_InitStructure.GPIO_Pin = USB_DISCONNECT_PIN;
+    // HJI GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    // HJI GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+    // HJI GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+    // HJI GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    // HJI GPIO_Init(USB_DISCONNECT, &GPIO_InitStructure);
+#endif /* STM32F37X  && STM32F30X)*/
+ 
     /* Configure the EXTI line 18 connected internally to the USB IP */
     EXTI_ClearITPendingBit(EXTI_Line18);
-    EXTI_InitStructure.EXTI_Line    = EXTI_Line18;
+    EXTI_InitStructure.EXTI_Line = EXTI_Line18;
     EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
     EXTI_InitStructure.EXTI_LineCmd = ENABLE;
     EXTI_Init(&EXTI_InitStructure);
@@ -123,11 +175,17 @@ void Set_System(void)
 *******************************************************************************/
 void Set_USBClock(void)
 {
-    /* Select USBCLK source */
-    RCC_USBCLKConfig(RCC_USBCLKSource_PLLCLK_1Div5);
-
-    /* Enable the USB clock */
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_USB, ENABLE);
+#if defined(STM32L1XX_MD) || defined(STM32L1XX_HD) || defined(STM32L1XX_MD_PLUS) 
+  /* Enable USB clock */
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_USB, ENABLE);
+  
+#else 
+  /* Select USBCLK source */
+  RCC_USBCLKConfig(RCC_USBCLKSource_PLLCLK_1Div5);
+  
+  /* Enable the USB clock */
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_USB, ENABLE);
+#endif /* STM32L1XX_MD */
 }
 
 /*******************************************************************************
@@ -162,7 +220,7 @@ void Leave_LowPowerMode(void)
   {
     bDeviceState = ATTACHED;
   }
-  /*Enable SystemCoreClock*/
+    /*Enable SystemCoreClock*/
   SystemInit();
 }
 
@@ -176,20 +234,80 @@ void USB_Interrupts_Config(void)
 {
 NVIC_InitTypeDef NVIC_InitStructure;
 
-    /* 2 bit for pre-emption priority, 2 bits for subpriority */
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+  /* 2 bit for pre-emption priority, 2 bits for subpriority */
+  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+ 
+#if defined(STM32L1XX_MD)|| defined(STM32L1XX_HD) || defined(STM32L1XX_MD_PLUS)
+  /* Enable the USB interrupt */
+  NVIC_InitStructure.NVIC_IRQChannel = USB_LP_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure);
 
-    /* Enable the USB interrupt */
-    NVIC_InitStructure.NVIC_IRQChannel                   = USB_LP_CAN1_RX0_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0;
-    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
+  /* Enable the USB Wake-up interrupt */
+  NVIC_InitStructure.NVIC_IRQChannel = USB_FS_WKUP_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure);
 
-    /* Enable the USB Wake-up interrupt */
-    NVIC_InitStructure.NVIC_IRQChannel                   = USBWakeUp_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-    NVIC_Init(&NVIC_InitStructure);
+#elif defined(STM32F37X)
+  /* Enable the USB interrupt */
+  NVIC_InitStructure.NVIC_IRQChannel = USB_LP_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure);
+  
+  /* Enable the USB Wake-up interrupt */
+  NVIC_InitStructure.NVIC_IRQChannel = USBWakeUp_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure);
+  
+#else
+  /* Enable the USB interrupt */
+  NVIC_InitStructure.NVIC_IRQChannel = USB_LP_CAN1_RX0_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure);
+  
+  /* Enable the USB Wake-up interrupt */
+  NVIC_InitStructure.NVIC_IRQChannel = USBWakeUp_IRQn;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+  NVIC_Init(&NVIC_InitStructure);   
+#endif
+}
+
+/*******************************************************************************
+* Function Name  : USB_Cable_Config
+* Description    : Software Connection/Disconnection of USB Cable
+* Input          : None.
+* Return         : Status
+*******************************************************************************/
+void USB_Cable_Config (FunctionalState NewState)
+{
+#if defined(STM32L1XX_MD) || defined (STM32L1XX_HD)|| (STM32L1XX_MD_PLUS)
+  if (NewState != DISABLE)
+  {
+    STM32L15_USB_CONNECT;
+  }
+  else
+  {
+    STM32L15_USB_DISCONNECT;
+  }  
+  
+// HJI #else /* USE_STM3210B_EVAL or USE_STM3210E_EVAL */
+  if (NewState != DISABLE)
+  {
+    GPIO_ResetBits(USB_DISCONNECT, USB_DISCONNECT_PIN);
+  }
+  else
+  {
+    GPIO_SetBits(USB_DISCONNECT, USB_DISCONNECT_PIN);
+  }
+#endif /* STM32L1XX_MD */
 }
 
 /*******************************************************************************
@@ -206,7 +324,7 @@ void Get_SerialNum(void)
   Device_Serial0 = *(uint32_t*)ID1;
   Device_Serial1 = *(uint32_t*)ID2;
   Device_Serial2 = *(uint32_t*)ID3;
-
+ 
   Device_Serial0 += Device_Serial2;
 
   if (Device_Serial0 != 0)
@@ -226,7 +344,7 @@ void Get_SerialNum(void)
 static void IntToUnicode (uint32_t value , uint8_t *pbuf , uint8_t len)
 {
   uint8_t idx = 0;
-
+  
   for( idx = 0 ; idx < len ; idx ++)
   {
     if( ((value >> 28)) < 0xA )
@@ -235,18 +353,18 @@ static void IntToUnicode (uint32_t value , uint8_t *pbuf , uint8_t len)
     }
     else
     {
-      pbuf[2* idx] = (value >> 28) + 'A' - 10;
+      pbuf[2* idx] = (value >> 28) + 'A' - 10; 
     }
-
+    
     value = value << 4;
-
+    
     pbuf[ 2* idx + 1] = 0;
   }
 }
 
 /*******************************************************************************
 * Function Name  : Send DATA .
-* Description    : send the data received from the STM32 to the PC through USB
+* Description    : send the data received from the STM32 to the PC through USB  
 * Input          : None.
 * Output         : None.
 * Return         : None.
@@ -285,7 +403,7 @@ uint32_t CDC_Send_DATA (uint8_t *ptrBuffer, uint8_t sendLength)
 * Return         : None.
 *******************************************************************************/
 uint32_t CDC_Receive_DATA(uint8_t* recvBuf, uint32_t len)
-{
+{ 
     static uint8_t offset = 0;
     uint8_t i;
 
@@ -316,7 +434,7 @@ uint32_t CDC_Receive_DATA(uint8_t* recvBuf, uint32_t len)
 
 /*******************************************************************************
 * Function Name  : usbIsConfigured.
-* Description    : Determies if USB VCP is configured or not
+* Description    : Determines if USB VCP is configured or not
 * Input          : None.
 * Output         : None.
 * Return         : True if configured.
@@ -331,7 +449,7 @@ uint8_t usbIsConfigured()
 * Description    : Determines if USB VCP is connected ot not
 * Input          : None.
 * Output         : None.
-* Return         : True if conencted.
+* Return         : True if connected.
 *******************************************************************************/
 uint8_t usbIsConnected()
 {

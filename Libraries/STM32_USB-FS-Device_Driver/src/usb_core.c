@@ -50,7 +50,8 @@
 /* Private variables ---------------------------------------------------------*/
 uint16_t_uint8_t StatusInfo;
 
-bool Data_Mul_MaxPacketSize = FALSE;
+// HJI bool Data_Mul_MaxPacketSize = FALSE;
+boolean Data_Mul_MaxPacketSize = FALSE;  // HJI
 /* Private function prototypes -----------------------------------------------*/
 static void DataStageOut(void);
 static void DataStageIn(void);

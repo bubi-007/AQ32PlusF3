@@ -16,8 +16,8 @@
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
@@ -31,19 +31,17 @@
 #define __HW_CONFIG_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f30x.h"
+#include "platform_config.h"
 #include "usb_type.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
-#define ID1  (0x1FFFF7AC)
-#define ID2  (0x1FFFF7B0)
-#define ID3  (0x1FFFF7B4)
 /* Exported macro ------------------------------------------------------------*/
 /* Exported define -----------------------------------------------------------*/
-
 #define MASS_MEMORY_START     0x04002000
 #define BULK_MAX_PACKET_SIZE  0x00000040
+// HJI #define LED_ON                0xF0
+// HJI #define LED_OFF               0xFF
 
 /* Exported functions ------------------------------------------------------- */
 void Set_System(void);
@@ -51,22 +49,17 @@ void Set_USBClock(void);
 void Enter_LowPowerMode(void);
 void Leave_LowPowerMode(void);
 void USB_Interrupts_Config(void);
+void USB_Cable_Config (FunctionalState NewState);
 void Get_SerialNum(void);
-
-uint32_t CDC_Send_DATA(uint8_t *ptrBuffer, uint8_t sendLength);
-
-uint32_t CDC_Receive_DATA(uint8_t* recvBuf, uint32_t len);
-
-uint8_t usbIsConfigured();
-
-uint8_t usbIsConnected();
-
+// HJI void LCD_Control(void);
+uint32_t CDC_Send_DATA(uint8_t *ptrBuffer, uint8_t sendLength);  // HJI
+uint32_t CDC_Receive_DATA(uint8_t* recvBuf, uint32_t len);       // HJI
+uint8_t usbIsConfigured();  // HJI
+uint8_t usbIsConnected();   // HJI
 /* External variables --------------------------------------------------------*/
 
-extern __IO uint32_t packetSent;
-
-extern uint32_t receiveLength;
-extern uint8_t  receiveBuffer[64];
+extern __IO uint32_t receiveLength;  // HJI
+extern __IO uint32_t packetSent;     // HJI
 
 #endif  /*__HW_CONFIG_H*/
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

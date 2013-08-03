@@ -1,14 +1,14 @@
 /**
   ******************************************************************************
-  * @file    Project/STM32F30x_StdPeriph_Templates/stm32f30x_it.h
+  * @file    stm32_it.h
   * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    23-October-2012
+  * @version V4.0.0
+  * @date    21-January-2013
   * @brief   This file contains the headers of the interrupt handlers.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2013 STMicroelectronics</center></h2>
   *
   * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
   * You may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
   *
   *        http://www.st.com/software_license_agreement_liberty_v2
   *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
   * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   * See the License for the specific language governing permissions and
   * limitations under the License.
@@ -25,16 +25,13 @@
   ******************************************************************************
   */
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __STM32F30X_IT_H
-#define __STM32F30X_IT_H
 
-#ifdef __cplusplus
- extern "C" {
-#endif
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef __STM32_IT_H
+#define __STM32_IT_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f30x.h"
+#include "platform_config.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
@@ -53,10 +50,6 @@ void SysTick_Handler(void);
 void USBWakeUp_IRQHandler(void);
 void USB_FS_WKUP_IRQHandler(void);
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __STM32F30X_IT_H */
+#endif /* __STM32_IT_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
