@@ -108,7 +108,7 @@ static void serialPWM_IRQHandler(TIM_TypeDef *tim)
     if (TIM_GetITStatus(tim, TIM_IT_CC1) == SET)
     {
         last = now;
-        now = TIM_GetCapture4(tim);
+        now = TIM_GetCapture1(tim);
         rcActive = true;
     }
 
