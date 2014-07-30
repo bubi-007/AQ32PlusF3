@@ -55,6 +55,10 @@
 
 ///////////////////////////////////////
 
+firstOrderFilterData_t firstOrderFilters[NUMBER_OF_FIRST_ORDER_FILTERS];
+
+///////////////////////////////////////
+
 #define ACCEL500HZ_X_LOWPASS_TAU         0.05f
 #define ACCEL500HZ_X_LOWPASS_SAMPLE_TIME 0.002f
 #define ACCEL500HZ_X_LOWPASS_A           (2.0f * ACCEL500HZ_X_LOWPASS_TAU / ACCEL500HZ_X_LOWPASS_SAMPLE_TIME)
