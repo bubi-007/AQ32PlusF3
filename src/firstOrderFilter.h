@@ -64,7 +64,7 @@ typedef struct firstOrderFilterData {
   float   previousOutput;
 } firstOrderFilterData_t;
 
-firstOrderFilterData_t firstOrderFilters[NUMBER_OF_FIRST_ORDER_FILTERS];
+extern firstOrderFilterData_t firstOrderFilters[NUMBER_OF_FIRST_ORDER_FILTERS];
 
 ///////////////////////////////////////////////////////////////////////////////
 
